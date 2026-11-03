@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 26
+  productGUID: 352e09d398aa4f2eaf3f9875338f2ec9
+  companyName: TSE Fatal Studio
+  productName: TSE Fatal
+  defaultScreenWidth: 1280
+  defaultScreenHeight: 720
+  defaultScreenWidthWeb: 960
+  defaultScreenHeightWeb: 600
+  runInBackground: 1
+  usePlayerLog: 1
+  activeInputHandler: 0

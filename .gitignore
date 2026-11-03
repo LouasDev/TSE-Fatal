@@ -1,0 +1,27 @@
+# Unity generated data
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+/MemoryCaptures/
+/Recordings/
+
+# Local task files
+/work/
+
+# IDE and operating system files
+/.vs/
+/.vscode/
+/.idea/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
