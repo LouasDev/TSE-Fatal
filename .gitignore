@@ -25,3 +25,7 @@
 *.log
 .DS_Store
 Thumbs.db
+
+
+# Project Local Files
+.claude/
