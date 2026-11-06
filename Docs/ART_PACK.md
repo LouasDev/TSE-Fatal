@@ -1,15 +1,18 @@
 # Pacote de arte — TSE Fatal
 
-Todos os PNGs ficam em `Assets/Resources/Art` e recebem importação automática com filtro `Point` para preservar pixels nítidos.
+Todos os PNGs ficam em `Assets/Resources/Art`. A importação é automática (`PixelArtImportPostprocessor`): sprite sem compressão, com mipmaps e leitura habilitada para o recorte das sprite sheets. Fundo verde (ou magenta, quando o desenho tem verde) é removido pelo jogo ao carregar os frames.
 
 | Caminho | Uso |
 | --- | --- |
-| `Characters/lula_idle.png` | Lutador e retrato de seleção de Lula. |
-| `Characters/renan_idle.png` | Lutador e retrato de seleção de Renan Santos. |
-| `Characters/flavio_sigma.png` | Versão ativa do lutador de Flávio Bolsonaro: mandíbula quadrada, maleta e moeda. |
-| `VFX/lula_aura_reversa.png` | Efeitos para hipnose cômica, aura drenada e buff. |
-| `VFX/renan_onca.png` | Efeitos para a invocação da onça pixelada. |
-| `VFX/flavio_dinheiro.png` | Moedas, maleta, escudo e chuva de dinheiro fictícios. |
-| `Menu/menu_debate_arena.png` | Fundo do menu de seleção. |
+| `Characters/lula_idle.png` | Imagem estática, retrato e animação procedural de Lula. |
+| `Characters/renan_idle.png` | Idem para Renan Santos. |
+| `Characters/flavio_sigma_idle.png` | Idem para Flávio Bolsonaro. |
+| `Characters/cury_idle.png` | Idem para Augusto Cury. |
+| `Characters/{lula,renan,flavio,cury}/{estado}/01.png...` | Frames de animação, um arquivo por frame (prompts em `PromptsAnimacao/{personagem}/`). |
+| `Stages/planalto.png` | Fundo da arena (Palácio do Planalto). |
+| `VFX/{efeito}/01.png...` | Frames opcionais dos efeitos das habilidades (prompts em `PromptsAnimacao/vfx/`); sem eles, o jogo desenha versões procedurais. |
+| `Menu/menu_debate_arena.png` | Fundo da seleção de personagem. |
+| `Menu/menu_debate_arena_personagens.png` | Fundo do menu principal, com os candidatos nos púlpitos. |
+| `Menu/select_{lula,renan,flavio,cury}_podium.png` | Candidato atrás do púlpito na seleção. |
 
 Os efeitos de status são fantásticos e cômicos; eles não representam alegações sobre pessoas reais.
