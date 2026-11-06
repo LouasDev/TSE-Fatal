@@ -1,0 +1,62 @@
+TSE FATAL — LICENÇA PROPRIETÁRIA
+Copyright (c) 2026 Equipe TSE Fatal. Todos os direitos reservados.
+
+1. TITULARIDADE
+O jogo TSE Fatal, incluindo código-fonte, arte, animações, textos, falas,
+músicas, efeitos sonoros, documentação e demais materiais deste repositório
+(o "Software"), pertence à Equipe TSE Fatal (os "Titulares"), salvo os itens
+de terceiros indicados na seção 5.
+
+2. O QUE É PERMITIDO
+Sem pagamento e sem necessidade de pedir autorização, você pode:
+  a) ler e navegar pelo Software neste repositório;
+  b) baixar ou clonar o Software e executá-lo no seu próprio computador,
+     para uso pessoal, estudo ou avaliação acadêmica;
+  c) usar as funções de visualização e fork oferecidas pela plataforma que
+     hospeda o repositório, nos limites dos termos de uso dela.
+
+3. O QUE NÃO É PERMITIDO
+Sem autorização prévia e por escrito dos Titulares, você NÃO pode:
+  a) distribuir, publicar, vender, alugar ou sublicenciar o Software, no todo
+     ou em parte, em código-fonte ou compilado;
+  b) publicar o Software, ou um derivado dele, em qualquer loja ou plataforma
+     de distribuição (Steam, itch.io, Epic Games Store, lojas de celular,
+     sites de download ou similares);
+  c) modificar o Software e distribuir a versão modificada;
+  d) reutilizar arte, personagens, animações, áudio, textos ou código do
+     Software em outros projetos, comerciais ou não;
+  e) usar o Software ou seus materiais para treinar modelos de inteligência
+     artificial;
+  f) remover ou alterar avisos de direitos autorais, desta licença ou de
+     sátira.
+
+4. CONTRIBUIÇÕES
+Ao enviar uma contribuição (código, arte, áudio, texto ou outro material) para
+este repositório, você concede aos Titulares, de forma gratuita, permanente e
+irrevogável, o direito de usar, modificar, distribuir e comercializar essa
+contribuição como parte do Software, inclusive em versões pagas.
+
+5. MATERIAIS DE TERCEIROS
+Alguns componentes têm licença própria, que prevalece sobre esta para eles:
+  - Fonte Press Start 2P: SIL Open Font License 1.1
+    (Assets/Resources/Fonts/OFL.txt);
+  - Pacotes da Unity (incluindo TextMesh Pro, UGUI e 2D Pixel Perfect):
+    termos da Unity Technologies.
+
+6. SÁTIRA E PESSOAS REAIS
+O Software é uma obra de ficção e sátira. Os personagens são caricaturas, e as
+habilidades e falas são humor; não são afirmações de fatos sobre ninguém.
+Esta licença não concede nenhum direito sobre nome, imagem ou voz de pessoas
+reais.
+
+7. SEM GARANTIA
+O Software é fornecido "no estado em que se encontra", sem garantia de
+qualquer tipo. Os Titulares não respondem por danos decorrentes do seu uso.
+
+8. ENCERRAMENTO
+O descumprimento desta licença encerra automaticamente as permissões da
+seção 2.
+
+9. CONTATO
+Pedidos de autorização: abra uma issue em
+https://github.com/LouasDev/TSE-Fatal ou fale com os Titulares.
