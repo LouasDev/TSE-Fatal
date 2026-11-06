@@ -4,7 +4,7 @@ namespace TSEFatal
 {
     public enum Difficulty { Facil, Normal, Dificil }
 
-    /// <summary>Ajustes da IA por dificuldade. NORMAL repete os valores que o bot já usava.</summary>
+    /// <summary>Ajustes da IA por dificuldade. Até o FÁCIL revida; o DIFÍCIL joga quase sem respiro.</summary>
     public static class BotDifficulty
     {
         public struct Tuning
@@ -16,6 +16,12 @@ namespace TSEFatal
             public float ComboChance;                // chance de emendar o próximo soco
             public float PauseMin, PauseMax;         // respiro depois de um soco
             public float SpecialScale;               // multiplica a chance de usar especiais
+            public float SpecialRestMin, SpecialRestMax; // respiro depois de um especial
+            public float RetreatChance;              // chance de recuar quando está perto
+            public float ReactDodge;                 // chance de esquivar quando o rival começa um golpe por perto
+            public float Aggression;                 // chance de perseguir no ar e de pressionar quem está fora da arena
+            public float ComboBreak;                 // chance de sair de um golpe leve com a esquiva
+            public bool WaitsOutAttacks;             // espera o golpe do rival acabar fora do alcance em vez de entrar nele
         }
 
         private const string PrefKey = "tse_fatal_dificuldade";
@@ -38,9 +44,9 @@ namespace TSEFatal
 
         public static string Description(Difficulty d) => d switch
         {
-            Difficulty.Facil => "Bot lento e distraído. Bom para aprender os golpes.",
-            Difficulty.Dificil => "Reage rápido, emenda combos e abusa dos especiais.",
-            _ => "Reage como um jogador comum e respira entre os golpes."
+            Difficulty.Facil => "Bot mais lento, mas já revida. Bom para aprender os golpes.",
+            Difficulty.Dificil => "Esquiva na hora, emenda combos e te caça fora da arena.",
+            _ => "Reage rápido, emenda combos e pune quem erra."
         };
 
         public static Color Tint(Difficulty d) => d switch
@@ -54,21 +60,24 @@ namespace TSEFatal
         {
             Difficulty.Facil => new Tuning
             {
-                ReactionMin = .5f, ReactionMax = .8f, ThinkMin = .45f, ThinkMax = .75f,
-                AttackChance = .32f, DodgeChance = .04f, ComboChance = .05f,
-                PauseMin = .85f, PauseMax = 1.3f, SpecialScale = .5f
+                ReactionMin = .32f, ReactionMax = .5f, ThinkMin = .3f, ThinkMax = .45f,
+                AttackChance = .48f, DodgeChance = .08f, ComboChance = .3f,
+                PauseMin = .5f, PauseMax = .8f, SpecialScale = .9f, SpecialRestMin = .8f, SpecialRestMax = 1.2f,
+                RetreatChance = .15f, ReactDodge = .15f, Aggression = .2f, ComboBreak = .12f
             },
             Difficulty.Dificil => new Tuning
             {
-                ReactionMin = .12f, ReactionMax = .24f, ThinkMin = .18f, ThinkMax = .32f,
-                AttackChance = .66f, DodgeChance = .18f, ComboChance = .55f,
-                PauseMin = .3f, PauseMax = .55f, SpecialScale = 1.5f
+                ReactionMin = .05f, ReactionMax = .1f, ThinkMin = .08f, ThinkMax = .14f,
+                AttackChance = .82f, DodgeChance = .12f, ComboChance = .92f,
+                PauseMin = .1f, PauseMax = .22f, SpecialScale = 1.9f, SpecialRestMin = .35f, SpecialRestMax = .6f,
+                RetreatChance = .04f, ReactDodge = .75f, Aggression = .9f, ComboBreak = .7f, WaitsOutAttacks = true
             },
             _ => new Tuning
             {
-                ReactionMin = .25f, ReactionMax = .45f, ThinkMin = .28f, ThinkMax = .5f,
-                AttackChance = .5f, DodgeChance = .12f, ComboChance = .25f,
-                PauseMin = .5f, PauseMax = .9f, SpecialScale = 1f
+                ReactionMin = .14f, ReactionMax = .26f, ThinkMin = .16f, ThinkMax = .26f,
+                AttackChance = .65f, DodgeChance = .12f, ComboChance = .6f,
+                PauseMin = .25f, PauseMax = .45f, SpecialScale = 1.35f, SpecialRestMin = .55f, SpecialRestMax = .9f,
+                RetreatChance = .1f, ReactDodge = .4f, Aggression = .5f, ComboBreak = .35f, WaitsOutAttacks = true
             }
         };
     }

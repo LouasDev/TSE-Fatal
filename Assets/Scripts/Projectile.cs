@@ -21,6 +21,15 @@ namespace TSEFatal
         public System.Action<Vector2> OnLand; // quique ou queda (som, poeira)
         public Color SparkColor = Color.white;
 
+        /// <summary>Projéteis em cena, para a IA ver o que vem na direção dela.</summary>
+        public static readonly System.Collections.Generic.List<Projectile> Live = new System.Collections.Generic.List<Projectile>();
+        /// <summary>A IA do rival já decidiu se esquiva deste projétil (decide uma vez só).</summary>
+        public bool BotJudged;
+        public bool Spent => spent;
+
+        private void OnEnable() => Live.Add(this);
+        private void OnDisable() => Live.Remove(this);
+
         private SpriteRenderer sr;
         private bool spent;
         private float age;

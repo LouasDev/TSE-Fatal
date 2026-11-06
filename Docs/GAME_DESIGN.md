@@ -18,7 +18,7 @@ Jogo de luta 2D em plataforma, inspirado no Brawlhalla, em pixel art e tom de s�
 | A / D | Mover |
 | W / Espaço | Pular (até 2 pulos no ar) |
 | S | Descer da plataforma / queda rápida |
-| Shift | Esquiva (invulnerável por um instante) |
+| Shift | Esquiva (invulnerável por um instante). Atordoado por golpe leve, corta o atordoamento, com recarga de 1,5 s |
 | J | Ataque (combo de 3 socos no chão, chute no ar) |
 | K / L / I | Habilidades especiais |
 | Esc | Voltar ao menu |
@@ -51,15 +51,21 @@ Jogo de luta 2D em plataforma, inspirado no Brawlhalla, em pixel art e tom de s�
 
 ## IA
 
-O bot tem tempo de reação ao entrar no alcance, pausa entre ataques, chance de recuar ou hesitar e usa especiais com menos frequência que socos. Os valores mudam com a dificuldade (`BotDifficulty`):
+O bot tem tempo de reação ao entrar no alcance, pausa entre ataques e chance de recuar ou hesitar. Ele também esquiva a cada golpe do rival por perto (às vezes atravessando e punindo pelas costas), desvia de projéteis, sai de sequências de golpes leves com a esquiva, espera fora do alcance enquanto o rival soca o ar, pula atrás de quem está no ar logo acima e vai até a borda pressionar quem tenta voltar à arena. Os valores mudam com a dificuldade (`BotDifficulty`):
 
 | | Fácil | Normal | Difícil |
 | --- | --- | --- | --- |
-| Reação ao entrar no alcance | 0,5–0,8 s | 0,25–0,45 s | 0,12–0,24 s |
-| Chance de atacar de perto | 32% | 50% | 66% |
-| Pausa entre socos | 0,85–1,3 s | 0,5–0,9 s | 0,3–0,55 s |
-| Emenda o combo | 5% | 25% | 55% |
-| Uso de especiais | metade | base | 1,5× |
+| Reação ao entrar no alcance | 0,32–0,5 s | 0,14–0,26 s | 0,05–0,1 s |
+| Intervalo entre decisões | 0,3–0,45 s | 0,16–0,26 s | 0,08–0,14 s |
+| Chance de atacar de perto | 48% | 65% | 82% |
+| Pausa entre socos | 0,5–0,8 s | 0,25–0,45 s | 0,1–0,22 s |
+| Emenda o combo | 30% | 60% | 92% |
+| Uso de especiais | 0,9× | 1,35× | 1,9× |
+| Respiro depois de um especial | 0,8–1,2 s | 0,55–0,9 s | 0,35–0,6 s |
+| Esquiva ao ver um golpe ou projétil | 15% | 40% | 75% |
+| Sai de sequência de golpes leves | 12% | 35% | 70% |
+| Espera o golpe do rival acabar | não | sim | sim |
+| Persegue no ar e pressiona na borda | 20% | 50% | 90% |
 
 ## Limites criativos
 

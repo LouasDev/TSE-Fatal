@@ -60,7 +60,7 @@ Each candidate has their own stats and three abilities on **K**, **L**, and **I*
 | `A` `D` | Move |
 | `W` or `Space` | Jump, twice in the air |
 | `S` | Drop through a platform, fast fall |
-| `Shift` | Dodge |
+| `Shift` | Dodge. Also breaks out of light hits after a moment |
 | `J` | Punch: a three-hit combo on the ground, a kick in the air |
 | `K` `L` `I` | Abilities |
 | `Esc` | Back to the menu |

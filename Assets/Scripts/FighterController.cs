@@ -30,6 +30,12 @@ namespace TSEFatal
         public float SilenceRemaining => silence;
         public float ConfusionRemaining => confusion;
         public float SleepRemaining => sleep;
+        /// <summary>No meio de um golpe ou especial (a IA usa para esquivar na hora).</summary>
+        public bool Attacking => Busy;
+        /// <summary>Sobe a cada golpe ou especial iniciado: a IA percebe cada soco de uma sequência apertada.</summary>
+        public int AttackSerial { get; private set; }
+        /// <summary>Fora do chão principal (a IA usa para pressionar quem tenta voltar).</summary>
+        public bool IsOffStage => OffStage;
         public float Cooldown(int slot) => slot == 1 ? cd1 : slot == 2 ? cd2 : cd3;
         public Rect Hurtbox => new Rect(transform.position.x - .65f, transform.position.y + .1f, 1.3f, BodyHeight);
         public System.Action<FighterController> OnKnockedOut;
@@ -57,7 +63,13 @@ namespace TSEFatal
         private bool inUp, inDown, jumpPress, dropPress, attackPress, sp1Press, sp2Press, sp3Press, dodgePress;
         // IA: tempo de reação, pausa entre ataques e recuo, para o bot não "metralhar" golpes.
         private float botThink, botReaction, botAttackCd, botRetreat;
-        private bool botWasClose;
+        private float botPunish;
+        private int botLastSerial;
+        private bool botWasClose, botTargetWasOff, botGuarding, botTargetWasAttacking, botEscapePending;
+        // Saída de golpe leve: depois de um instante atordoado, a esquiva corta o atordoamento.
+        private const float HitstunEscapeLock = .1f, EscapeKnockbackLimit = 8.5f, EscapeDodgeCooldown = 1.5f;
+        private float hitstunAge;
+        private bool hitstunEscapable;
 
         private bool Busy => move != null;
         private Vector2 Pos => transform.position;
@@ -156,7 +168,16 @@ namespace TSEFatal
             if (hitstun > 0f)
             {
                 hitstun -= dt;
+                hitstunAge += dt;
                 vel.x = Mathf.MoveTowards(vel.x, 0f, (grounded ? 30f : 4.5f) * dt);
+                // Golpe leve não prende para sempre: a esquiva corta o atordoamento, com recarga maior.
+                // Golpes fortes (os que mandam para longe) não deixam sair, para o nocaute continuar valendo.
+                if (hitstunEscapable && hitstunAge >= HitstunEscapeLock && dodgePress && dodgeCd <= 0f && (grounded || !airDodgeUsed))
+                {
+                    hitstun = 0f;
+                    StartDodge();
+                    dodgeCd = EscapeDodgeCooldown;
+                }
             }
             else if (dodgeTimer > 0f)
             {
@@ -195,7 +216,7 @@ namespace TSEFatal
                 transform.position += Vector3.down * .08f;
             }
             if (dodgePress && dodgeCd <= 0f && (grounded || !airDodgeUsed)) { StartDodge(); return; }
-            if (attackPress) { LightAttack(); return; }
+            if (attackPress) { AttackSerial++; LightAttack(); return; }
 
             bool anySpecial = sp1Press || sp2Press || sp3Press;
             if (anySpecial && silence > 0f)
@@ -211,6 +232,7 @@ namespace TSEFatal
             if (sp1Press && cd1 <= 0f) move = StartCoroutine(Special1());
             else if (sp2Press && cd2 <= 0f) move = StartCoroutine(Special2());
             else if (sp3Press && cd3 <= 0f && CharacterProfile.Special3Name(Candidate) != null) move = StartCoroutine(Special3());
+            if (Busy) AttackSerial++;
         }
 
         private void Jump(float speed, bool fromGround)
@@ -344,6 +366,27 @@ namespace TSEFatal
             float dx = them.x - me.x, dy = them.y - me.y;
             float adx = Mathf.Abs(dx), ady = Mathf.Abs(dy);
             StagePlatform g = arena.Ground;
+            BotDifficulty.Tuning ai = BotDifficulty.Get(BotLevel);
+
+            // Atordoado por golpe leve: decide uma vez se sai com a esquiva, para não apanhar a sequência inteira.
+            if (hitstun > 0f)
+            {
+                if (botEscapePending && hitstunEscapable && hitstunAge >= HitstunEscapeLock && dodgeCd <= 0f)
+                {
+                    botEscapePending = false;
+                    if (Random.value < ai.ComboBreak)
+                    {
+                        // Foge para longe do rival; perto da borda, atravessa ele para não cair.
+                        float away = -Mathf.Sign(dx);
+                        if (Mathf.Abs(me.x + away * 3.6f) > g.Right - .5f) away = -away;
+                        inX = away;
+                        inUp = !grounded;
+                        dodgePress = true;
+                        botPunish = .45f;
+                    }
+                }
+                return;
+            }
 
             // Recuperação: fora do chão, volta para o centro gastando pulos e esquiva.
             bool offStage = me.x < g.Left || me.x > g.Right || me.y < g.Top - .3f;
@@ -360,22 +403,69 @@ namespace TSEFatal
             botRetreat -= dt;
             bool close = adx < 2.3f && ady < 1.7f;
             // Tempo de reação "humano": ao entrar no alcance, demora um pouco antes do primeiro golpe.
-            BotDifficulty.Tuning ai = BotDifficulty.Get(BotLevel);
             if (close && !botWasClose) botReaction = Random.Range(ai.ReactionMin, ai.ReactionMax);
             botWasClose = close;
             botReaction -= dt;
+            botPunish -= dt;
 
-            float desired = adx > 1.6f ? Mathf.Sign(dx) : 0f;
-            if (botRetreat > 0f) desired = -Mathf.Sign(dx);
+            // Esquiva de reação: uma chance a cada golpe novo do rival, inclusive em sequência apertada.
+            bool newAttack = Target.AttackSerial != botLastSerial;
+            botLastSerial = Target.AttackSerial;
+            if (newAttack && adx < 3.4f && ady < 2.2f && !Busy && dodgeCd <= 0f && Random.value < ai.ReactDodge)
+            {
+                // Às vezes atravessa o rival na esquiva e pune pelas costas (se do outro lado ainda houver chão).
+                bool cross = Random.value < ai.Aggression * .7f && Mathf.Abs(them.x + Mathf.Sign(dx) * 1.6f) < g.Right - .6f;
+                inX = cross ? Mathf.Sign(dx) : 0f;
+                dodgePress = true;
+                botPunish = .45f;
+                botReaction = 0f;
+                return;
+            }
+
+            // Projétil vindo na direção do bot: decide uma vez por projétil se esquiva.
+            if (!Busy && dodgeCd <= 0f && IncomingProjectile() && Random.value < ai.ReactDodge)
+            {
+                inX = 0f;
+                dodgePress = true;
+                return;
+            }
+
+            // Fim do golpe do rival por perto: janela para punir antes que ele se recupere.
+            bool targetAttacking = Target.Attacking;
+            if (botTargetWasAttacking && !targetAttacking && adx < 3f) botPunish = Mathf.Max(botPunish, .3f);
+            botTargetWasAttacking = targetAttacking;
+
+            // Rival fora da arena: decide uma vez se vai até a borda pressionar a volta dele.
+            bool targetOff = Target.IsOffStage;
+            if (targetOff && !botTargetWasOff) botGuarding = Random.value < ai.Aggression;
+            botTargetWasOff = targetOff;
+            bool guarding = targetOff && botGuarding;
+
+            float desired = adx > 1.6f || (guarding && adx > 1f) ? Mathf.Sign(dx) : 0f;
+            if (botRetreat > 0f && !guarding) desired = -Mathf.Sign(dx);
+            // Rival socando o ar: espera fora do alcance em vez de entrar no soco, e pune quando ele parar.
+            if (ai.WaitsOutAttacks && targetAttacking && !guarding && botPunish <= 0f && adx > 1.2f && adx < 3.6f) desired = 0f;
             if (grounded && floor == g && Mathf.Abs(me.x + desired * .8f) > g.Right - .8f) desired = 0f;
             inX = desired;
             if (!Busy && adx > .2f && botRetreat <= 0f) facing = dx > 0 ? 1 : -1;
+
+            // Punição: golpeia na hora, sem tempo de reação nem pausa.
+            if (botPunish > 0f && close && !Busy && dodgeTimer <= 0f)
+            {
+                facing = dx > 0 ? 1 : -1;
+                attackPress = true;
+                botPunish = 0f;
+                botAttackCd = Random.value < ai.ComboChance ? .18f : Random.Range(ai.PauseMin, ai.PauseMax);
+                return;
+            }
 
             botThink -= dt;
             if (botThink > 0f) return;
             botThink = Random.Range(ai.ThinkMin, ai.ThinkMax);
 
-            if (dy > 2.2f && adx < 5f && Random.value < .5f) jumpPress = true;
+            if (dy > 2.2f && adx < 5f && Random.value < .5f + ai.Aggression * .4f) jumpPress = true;
+            // Rival no ar logo acima: pula atrás para acertar o golpe aéreo.
+            else if (grounded && !Target.Grounded && adx < 2f && dy > 1f && dy < 3.2f && Random.value < ai.Aggression) jumpPress = true;
             if (dy < -2.5f && grounded && floor != null && floor.OneWay && Random.value < .5f) dropPress = true;
             if (botAttackCd > 0f || botReaction > 0f || botRetreat > 0f) return;
 
@@ -405,7 +495,16 @@ namespace TSEFatal
                     else if (cd1 <= 0f && adx > 3f && r < .22f) special = sp1Press = true;
                     break;
             }
-            if (special) { botAttackCd = Random.Range(.9f, 1.5f); return; }
+            if (special) { botAttackCd = Random.Range(ai.SpecialRestMin, ai.SpecialRestMax); return; }
+
+            // Na borda, pressiona quem tenta voltar: golpeia quando chega perto, pulando se ele estiver acima.
+            if (guarding && adx < 2.4f && dy > -1.5f && dy < 3f)
+            {
+                if (grounded && dy > .9f && Random.value < ai.Aggression) jumpPress = true;
+                else attackPress = true;
+                botAttackCd = Random.Range(ai.PauseMin, ai.PauseMax);
+                return;
+            }
 
             if (close)
             {
@@ -417,9 +516,31 @@ namespace TSEFatal
                     botAttackCd = Random.value < ai.ComboChance ? .18f : Random.Range(ai.PauseMin, ai.PauseMax);
                 }
                 else if (roll < ai.AttackChance + ai.DodgeChance && dodgeCd <= 0f) dodgePress = true;
-                else if (roll < ai.AttackChance + ai.DodgeChance + .18f) botRetreat = Random.Range(.25f, .5f);
+                else if (roll < ai.AttackChance + ai.DodgeChance + ai.RetreatChance) botRetreat = Random.Range(.25f, .5f);
                 else botAttackCd = Random.Range(.2f, .4f); // hesita
             }
+        }
+
+        /// <summary>
+        /// True quando um projétil do rival está prestes a chegar (de lado ou caindo de cima).
+        /// Cada projétil só é avaliado uma vez, para a esquiva ser uma decisão e não um reflexo perfeito.
+        /// </summary>
+        private bool IncomingProjectile()
+        {
+            Vector2 me = Pos + Vector2.up * 1.5f;
+            foreach (Projectile p in Projectile.Live)
+            {
+                if (p == null || p.Owner == this || p.Spent || p.BotJudged) continue;
+                Vector2 rel = (Vector2)p.transform.position - me;
+                Vector2 v = p.Velocity;
+                bool sideways = Mathf.Abs(v.x) > .5f && Mathf.Sign(v.x) == -Mathf.Sign(rel.x)
+                    && Mathf.Abs(rel.x) / Mathf.Abs(v.x) < .3f && rel.y > -2.5f && rel.y < 2.5f;
+                bool falling = v.y < -.5f && Mathf.Abs(rel.x) < 2.4f && rel.y > 0f && rel.y / -v.y < .35f;
+                if (!sideways && !falling) continue;
+                p.BotJudged = true;
+                return true;
+            }
+            return false;
         }
 
         // ---------------------------------------------------------------- dano e nocaute
@@ -433,6 +554,9 @@ namespace TSEFatal
             vel = new Vector2(Mathf.Cos(a) * direction, Mathf.Sin(a)) * kb;
             if (vel.y > 0f) { grounded = false; floor = null; }
             hitstun = .12f + kb * .022f;
+            hitstunAge = 0f;
+            hitstunEscapable = kb < EscapeKnockbackLimit && hit.SilenceSeconds <= 0f;
+            botEscapePending = IsBot;
             CancelMove();
             facing = -direction;
             anim.Play(FighterAnim.Hurt, 0f, true);
